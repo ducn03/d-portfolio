@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useLanguage } from "../lib/language";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Download, Github, Mail, Phone } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
 
 export function Hero() {
   const { t } = useLanguage();
@@ -15,7 +15,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-sm font-medium text-muted-foreground mb-8">
+            <span className="inline-block px-4 py-1.5 rounded-full border border-border bg-muted/50 text-sm font-medium text-muted-foreground mb-8 backdrop-blur-sm">
               {t("hero.role")}
             </span>
           </motion.div>
@@ -24,7 +24,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/50"
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/50"
           >
             Nguyen Dinh Duc
           </motion.h1>
@@ -35,8 +35,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-2xl mb-12"
           >
-            Backend engineer passionate about building reliable systems. 
-            Curious, hands-on, and eager to explore new technologies.
+            {t("hero.description")}
           </motion.p>
 
           <motion.div
@@ -56,7 +55,7 @@ export function Hero() {
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full text-base h-14 px-8 border-white/10 hover:bg-white/5"
+              className="rounded-full text-base h-14 px-8 border-border hover:bg-muted"
               onClick={() => window.open('/attached_assets/CV_-_NGUYEN_DINH_DUC_-_SWE_1.5_1765859334694.pdf', '_blank')}
             >
               {t("hero.download")} <Download className="ml-2 w-4 h-4" />
@@ -65,8 +64,8 @@ export function Hero() {
         </div>
       </div>
       
-      {/* Abstract Background Element */}
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl -z-10 opacity-50 pointer-events-none" />
+      {/* Abstract Background Element - Optimized for both themes */}
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl -z-10 opacity-50 pointer-events-none" />
     </section>
   );
 }
