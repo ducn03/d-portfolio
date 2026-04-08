@@ -445,6 +445,7 @@ main { position: relative; z-index: 2; }
             <img src="images/hima11.jpg" alt="">
             <img src="images/hima12.jpg" alt="">
             <img src="images/hima13.jpg" alt="">
+
           </div>
         </div>
       </div>
@@ -625,30 +626,76 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // click ảnh to
-document.querySelectorAll('.exp-gallery img').forEach(img => {
-  img.addEventListener('click', () => {
-    const overlay = document.createElement('div');
-    overlay.style = `
-      position:fixed; inset:0;
-      background:rgba(0,0,0,0.8);
-      display:flex; align-items:center; justify-content:center;
-      z-index:9999;
-    `;
-    
-    const bigImg = document.createElement('img');
-    bigImg.src = img.src;
-    bigImg.style = `
-      max-width:90%;
-      max-height:90%;
-      border-radius:10px;
-    `;
+document.querySelectorAll('.exp-gallery').forEach(gallery => {
+  const images = gallery.querySelectorAll('img');
 
-    overlay.appendChild(bigImg);
-    overlay.onclick = () => overlay.remove();
+  images.forEach((img, index) => {
+    img.addEventListener('click', () => {
+      let current = index;
 
-    document.body.appendChild(overlay);
+      const overlay = document.createElement('div');
+      overlay.style = `
+        position:fixed; inset:0;
+        background:rgba(0,0,0,0.85);
+        display:flex; align-items:center; justify-content:center;
+        z-index:9999;
+      `;
+
+      const bigImg = document.createElement('img');
+      bigImg.style = `
+        max-width:90%;
+        max-height:90%;
+        border-radius:10px;
+      `;
+
+      function render() {
+        bigImg.src = images[current].src;
+      }
+
+      function prev() {
+        current = (current - 1 + images.length) % images.length;
+        render();
+      }
+
+      function next() {
+        current = (current + 1) % images.length;
+        render();
+      }
+
+      function close() {
+        overlay.remove();
+        document.body.style.overflow = ''; // 👈 mở lại scroll
+        window.removeEventListener('keydown', handleKey);
+      }
+
+      function handleKey(e) {
+        if (e.key === 'Escape') {
+          close(); // 👈 FIX CHÍNH
+        }
+        if (e.key === 'ArrowLeft') prev();
+        if (e.key === 'ArrowRight') next();
+      }
+
+      // 👇 khóa scroll khi mở
+      document.body.style.overflow = 'hidden';
+
+      // 👇 click nền để đóng
+      overlay.onclick = close;
+
+      // 👇 chặn click vào ảnh
+      bigImg.onclick = (e) => e.stopPropagation();
+
+      window.addEventListener('keydown', handleKey);
+
+      render();
+      overlay.appendChild(bigImg);
+      document.body.appendChild(overlay);
+    });
   });
 });
+
+
 </script>
+
 </body>
 </html>
