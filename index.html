@@ -287,6 +287,32 @@ main { position: relative; z-index: 2; }
   transform: scale(1.06);
   border-color: var(--accent);
 }
+
+/* avatar */
+.hero-name {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hero-avatar {
+  height: 1.8em;   /* 👈 key: scale theo font chữ */
+  width: 1.8em;
+  border-radius: 50%;
+  object-fit: cover;
+
+  opacity: 0.9;
+  filter: grayscale(20%);
+  border: 1px solid var(--border2);
+
+  flex-shrink: 0;
+}
+
+.hero-avatar:hover {
+  opacity: 1;
+  filter: none;
+  transition: 0.2s;
+}
 </style>
 </head>
 <body>
@@ -318,7 +344,10 @@ main { position: relative; z-index: 2; }
       available for opportunities
     </div>
     <h1 class="hero-name">
-      Nguyen<br><span class="highlight">Dinh Duc</span>
+      <img src="images/momo3.jpg" class="hero-avatar" />
+      <div>
+        Nguyen<br><span class="highlight">Dinh Duc</span>
+      </div>
     </h1>
     <p class="hero-desc">
       Backend engineer passionate about building reliable systems. Designing microservices that scale, event-driven architectures that don't break, and code that actually makes sense.
