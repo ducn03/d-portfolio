@@ -318,6 +318,16 @@ main { position: relative; z-index: 2; }
   filter: none;
   transition: 0.2s;
 }
+
+@media (max-width: 640px) {
+  .hero-name {
+    /* Giảm kích thước chữ trên mobile để không bị tràn */
+    font-size: clamp(34px, 10vw, 48px) !important; 
+    letter-spacing: -1px;
+    line-height: 1.1;
+    gap: 12px;
+  }
+}
 </style>
 </head>
 <body>
@@ -660,7 +670,8 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // click ảnh to
-ddocument.querySelectorAll('.exp-gallery').forEach(gallery => {
+// Tối ưu hóa bộ sưu tập ảnh (Lightbox)
+document.querySelectorAll('.exp-gallery').forEach(gallery => {
   const images = gallery.querySelectorAll('img');
 
   images.forEach((img, index) => {
@@ -668,123 +679,74 @@ ddocument.querySelectorAll('.exp-gallery').forEach(gallery => {
       let current = index;
 
       const overlay = document.createElement('div');
+      overlay.className = 'lightbox-overlay';
       overlay.style = `
-        position:fixed; inset:0;
-        background:rgba(0,0,0,0.9);
-        display:flex; align-items:center; justify-content:center;
-        z-index:9999;
-        overflow:hidden;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.95);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 10000; cursor: zoom-out;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+      `;
+
+      // Nút đóng dành riêng cho mobile
+      const closeBtn = document.createElement('div');
+      closeBtn.innerHTML = '✕';
+      closeBtn.style = `
+        position: absolute; top: 20px; right: 20px;
+        color: white; font-size: 24px; font-family: sans-serif;
+        cursor: pointer; width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.1); border-radius: 50%;
+        z-index: 10001;
       `;
 
       const bigImg = document.createElement('img');
       bigImg.style = `
-        max-width:90%;
-        max-height:90%;
-        border-radius:10px;
-        user-select:none;
-        touch-action:none;
-        transition: transform 0.1s ease;
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        transition: transform 0.3s ease;
       `;
-
-      let scale = 1;
-      let startDist = 0;
-      let startX = 0;
 
       function render() {
         bigImg.src = images[current].src;
-        scale = 1;
-        bigImg.style.transform = `scale(1)`;
-      }
-
-      function prev() {
-        current = (current - 1 + images.length) % images.length;
-        render();
-      }
-
-      function next() {
-        current = (current + 1) % images.length;
-        render();
       }
 
       function close() {
         overlay.remove();
-        document.body.style.overflowY = '';
+        document.body.style.overflow = '';
         window.removeEventListener('keydown', handleKey);
       }
 
       function handleKey(e) {
         if (e.key === 'Escape') close();
-        if (e.key === 'ArrowLeft') prev();
-        if (e.key === 'ArrowRight') next();
+        if (e.key === 'ArrowLeft') { current = (current - 1 + images.length) % images.length; render(); }
+        if (e.key === 'ArrowRight') { current = (current + 1) % images.length; render(); }
       }
 
-      // ===== DESKTOP ZOOM (WHEEL) =====
-      bigImg.addEventListener('wheel', (e) => {
-        e.preventDefault();
-
-        const zoomSpeed = 0.0015;
-        scale += e.deltaY * -zoomSpeed;
-
-        scale = Math.min(Math.max(1, scale), 4);
-        bigImg.style.transform = `scale(${scale})`;
-      });
-
-      // ===== DOUBLE CLICK RESET =====
-      bigImg.addEventListener('dblclick', () => {
-        scale = 1;
-        bigImg.style.transform = `scale(1)`;
-      });
-
-      // ===== MOBILE TOUCH =====
-      overlay.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          startX = e.touches[0].clientX;
-        }
-
-        if (e.touches.length === 2) {
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          startDist = Math.sqrt(dx * dx + dy * dy);
-        }
-      });
-
-      overlay.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          let newScale = scale * (dist / startDist);
-          newScale = Math.max(1, Math.min(newScale, 4));
-
-          bigImg.style.transform = `scale(${newScale})`;
-        }
-      });
-
-      overlay.addEventListener('touchend', (e) => {
-        if (scale === 1 && e.changedTouches.length === 1) {
-          let endX = e.changedTouches[0].clientX;
-          let diff = endX - startX;
-
-          if (diff > 50) prev();
-          if (diff < -50) next();
-        }
-
-        if (e.touches.length < 2) {
-          const matrix = new DOMMatrix(getComputedStyle(bigImg).transform);
-          scale = matrix.a;
-        }
-      });
-
-      // ===== BASIC SETUP =====
-      document.body.style.overflowY = 'hidden';
-
       overlay.onclick = close;
-      bigImg.onclick = (e) => e.stopPropagation();
+      closeBtn.onclick = close;
+      bigImg.onclick = (e) => {
+        e.stopPropagation(); // Click vào ảnh không bị đóng
+        // Logic: Click vào bên phải ảnh để Next, bên trái để Prev
+        const rect = bigImg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x > rect.width / 2) {
+            current = (current + 1) % images.length;
+        } else {
+            current = (current - 1 + images.length) % images.length;
+        }
+        render();
+      };
 
       window.addEventListener('keydown', handleKey);
+      document.body.style.overflow = 'hidden';
 
       render();
+      overlay.appendChild(closeBtn);
       overlay.appendChild(bigImg);
       document.body.appendChild(overlay);
     });
