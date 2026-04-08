@@ -293,10 +293,15 @@ main { position: relative; z-index: 2; }
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-wrap: wrap;            /* 👈 FIX tràn mobile */
+}
+
+.hero-name > div {
+  min-width: 0;               /* 👈 FIX flex overflow */
 }
 
 .hero-avatar {
-  height: 1.8em;   /* 👈 key: scale theo font chữ */
+  height: 1.8em;
   width: 1.8em;
   border-radius: 50%;
   object-fit: cover;
@@ -655,12 +660,13 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // click ảnh to
-document.querySelectorAll('.exp-gallery').forEach(gallery => {
+ddocument.querySelectorAll('.exp-gallery').forEach(gallery => {
   const images = gallery.querySelectorAll('img');
 
   images.forEach((img, index) => {
     img.addEventListener('click', () => {
       let current = index;
+      let startX = 0;
 
       const overlay = document.createElement('div');
       overlay.style = `
@@ -668,6 +674,7 @@ document.querySelectorAll('.exp-gallery').forEach(gallery => {
         background:rgba(0,0,0,0.85);
         display:flex; align-items:center; justify-content:center;
         z-index:9999;
+        touch-action: pan-x pan-y; /* 👈 FIX swipe mobile */
       `;
 
       const bigImg = document.createElement('img');
@@ -675,6 +682,7 @@ document.querySelectorAll('.exp-gallery').forEach(gallery => {
         max-width:90%;
         max-height:90%;
         border-radius:10px;
+        user-select:none;
       `;
 
       function render() {
@@ -693,26 +701,34 @@ document.querySelectorAll('.exp-gallery').forEach(gallery => {
 
       function close() {
         overlay.remove();
-        document.body.style.overflow = ''; // 👈 mở lại scroll
+        document.body.style.overflowY = ''; // 👈 FIX scroll
         window.removeEventListener('keydown', handleKey);
       }
 
       function handleKey(e) {
-        if (e.key === 'Escape') {
-          close(); // 👈 FIX CHÍNH
-        }
+        if (e.key === 'Escape') close();
         if (e.key === 'ArrowLeft') prev();
         if (e.key === 'ArrowRight') next();
       }
 
-      // 👇 khóa scroll khi mở
-      document.body.style.overflow = 'hidden';
+      // 👇 chỉ khóa scroll dọc
+      document.body.style.overflowY = 'hidden';
 
-      // 👇 click nền để đóng
       overlay.onclick = close;
-
-      // 👇 chặn click vào ảnh
       bigImg.onclick = (e) => e.stopPropagation();
+
+      // 👇 swipe mobile
+      overlay.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+      });
+
+      overlay.addEventListener('touchend', (e) => {
+        let endX = e.changedTouches[0].clientX;
+        let diff = endX - startX;
+
+        if (diff > 50) prev();
+        if (diff < -50) next();
+      });
 
       window.addEventListener('keydown', handleKey);
 
